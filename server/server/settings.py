@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 
 from pathlib import Path
 import os
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'users.apps.UsersConfig',
     'drf_yasg',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -52,7 +54,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
-
+MIDDLEWARE.insert(0, 'corsheaders.middleware.CorsMiddleware')
 ROOT_URLCONF = 'server.urls'
 
 TEMPLATES = [
@@ -80,12 +82,12 @@ WSGI_APPLICATION = 'server.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'news_app',
-        'USER': 'root',
-        'PASSWORD': '43danang211',
-        'HOST': 'localhost',
-        'PORT': '3306' 
-    }
+        'NAME': config('DATABASE_NAME'),
+        'USER': config('DATABASE_USER'),
+        'PASSWORD': config('DATABASE_PASSWORD'),
+        'HOST': config('DATABASE_HOST', default='127.0.0.1'),
+        'PORT': config('DATABASE_PORT', cast=int, default=3306),
+    },
 }
 
 REST_FRAMEWORK = {
@@ -141,3 +143,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+]
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost']

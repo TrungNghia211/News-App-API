@@ -28,11 +28,11 @@ category_update_body = openapi.Schema(
 subcategory_request_body = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
-        'name': openapi.Schema(type=openapi.TYPE_STRING, description='SubCategory name'),
+        'sub': openapi.Schema(type=openapi.TYPE_STRING, description='SubCategory name'),
         'description': openapi.Schema(type=openapi.TYPE_STRING, description='SubCategory description', nullable=True),
         'category': openapi.Schema(type=openapi.TYPE_INTEGER, description='Category ID'),
     },
-    required=['name', 'category'],  
+    required=['sub', 'category'],  
 )
 
 subcategory_update_body = openapi.Schema(
@@ -44,7 +44,6 @@ subcategory_update_body = openapi.Schema(
     },
     required=['sub', 'category'],  
 )
-
 article_request_body = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
@@ -52,6 +51,7 @@ article_request_body = openapi.Schema(
         'image': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_BINARY, description='Content image'),
         'content': openapi.Schema(type=openapi.TYPE_STRING, description='Content body'),
         'author': openapi.Schema(type=openapi.TYPE_STRING, description='Author name', nullable=True),
+        'active': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='Is content active?'),
         'subcategory': openapi.Schema(type=openapi.TYPE_INTEGER, description='SubCategory ID'),
         'category': openapi.Schema(type=openapi.TYPE_INTEGER, description='Category ID', nullable=True),
     },
@@ -65,6 +65,7 @@ article_update_body = openapi.Schema(
         'image': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_BINARY, description='Updated Content image'),
         'content': openapi.Schema(type=openapi.TYPE_STRING, description='Updated Content body'),
         'author': openapi.Schema(type=openapi.TYPE_STRING, description='Updated Author name', nullable=True),
+        'active': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='Is content active?'),
         'subcategory': openapi.Schema(type=openapi.TYPE_INTEGER, description='Updated SubCategory ID'),
         'category': openapi.Schema(type=openapi.TYPE_INTEGER, description='Updated Category ID', nullable=True),
     },
@@ -82,6 +83,7 @@ article_update_body = openapi.Schema(
 )
 @api_view(['GET', 'POST'])
 def category_view(request):
+    
     if request.method == 'GET':
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many=True)
@@ -93,7 +95,8 @@ def category_view(request):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
 @swagger_auto_schema(
     method='get',
     responses={200: CategorySerializer, 404: "Category not found"}
@@ -109,6 +112,7 @@ def category_view(request):
 )
 @api_view(['GET', 'PUT', 'DELETE'])
 def category_detail(request, pk):
+    
     try:
         category = Category.objects.get(pk=pk)
     except Category.DoesNotExist:
@@ -128,7 +132,7 @@ def category_detail(request, pk):
     elif request.method == 'DELETE':
         category.delete()
         return Response({'message': 'Category deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
-    
+   
 @swagger_auto_schema(
     method='post',
     request_body=subcategory_request_body,
@@ -140,17 +144,20 @@ def category_detail(request, pk):
 )
 @api_view(['GET', 'POST'])
 def subcategory_view(request):
+    
     if request.method == 'GET':
         subcategories = SubCategory.objects.all()
         serializer = SubCategorySerializer(subcategories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
     elif request.method == 'POST':
         serializer = SubCategorySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
+
+
 @swagger_auto_schema(
     method='get',
     responses={200: SubCategorySerializer, 404: "SubCategory not found"}
@@ -204,7 +211,7 @@ def article_detail(request, pk):
     try:
         content = Article.objects.get(pk=pk)
     except Article.DoesNotExist:
-        return Response({'error': 'Content not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({'error': 'Articles not found'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'GET':
         serializer = ArticleSerializer(content)
@@ -257,7 +264,7 @@ def article_create_by_subcategory(request):
 @api_view(['GET'])
 def article_get_all(request):
     """
-    API để lấy tất cả Content.
+    API để lấy tất cả Articles.
     """
     try:
         articles = Article.objects.all()
@@ -284,18 +291,21 @@ def add_comment(request, article_id):
         article = Article.objects.get(id=article_id)
     except Article.DoesNotExist:
         return Response({'detail': 'Article not found'}, status=status.HTTP_404_NOT_FOUND)
+
     if request.method == 'GET':
-        comments = article.comments.all()  
+        comments = article.comments.all()
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
     elif request.method == 'POST':
         data = request.data.copy()
-        data['content'] = article.id  
+        data['article'] = article.id  
         serializer = CommentSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     
 @swagger_auto_schema(
     method='get',
@@ -320,11 +330,11 @@ def comment_detail(request, id):
         serializer = CommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_200_OK)
     elif request.method == 'PUT':
-        content_id = request.data.get('content_id')  
-        if content_id:
+        article_id = request.data.get('article_id')  
+        if article_id:
             try:
-                content = Article.objects.get(id=content_id)
-                comment.content = content  
+                article = Article.objects.get(id=article_id)
+                comment.article = article  
             except Article.DoesNotExist:
                 return Response({'error': 'Content not found'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = CommentSerializer(comment, data=request.data, partial=True)

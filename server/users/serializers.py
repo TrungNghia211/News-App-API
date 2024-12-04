@@ -19,10 +19,11 @@ class CategorySerializer(serializers.ModelSerializer):
 
 class SubCategorySerializer(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
-
     class Meta:
         model = SubCategory
         fields = ['name', 'description', 'category']
+
+
 
 class ArticleSerializer(serializers.ModelSerializer):
     subcategory_id = serializers.PrimaryKeyRelatedField(
@@ -68,8 +69,8 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = ['id', 'title', 'author', 'created_date']
-    
     def validate(self, data):
-        if self.instance is None and not data.get('content'):
-            raise serializers.ValidationError("Cần chọn một content hợp lệ cho comment.")
+        if self.instance is None and not data.get('article'):
+            raise serializers.ValidationError("Cần chọn một article hợp lệ cho comment.")
         return data
+
