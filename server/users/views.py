@@ -351,4 +351,5 @@ class UserViewSet(viewsets.ViewSet,
                   generics.ListAPIView):
     queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
+    permission_classes = [permissions.IsAuthenticated]
 
