@@ -25,7 +25,6 @@ class SubCategory(models.Model):
     def __str__(self):
         return f"{self.name} ({self.category.name if self.category else 'No Category'})"
 
-
 class Article(models.Model):
     title = models.CharField(max_length=255, null=False)
     image_url = models.URLField(max_length=200, blank=True, null=True)  
