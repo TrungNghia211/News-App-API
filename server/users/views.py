@@ -6,6 +6,8 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
 
 category_request_body = openapi.Schema(
     type=openapi.TYPE_OBJECT,
@@ -346,10 +348,13 @@ def comment_detail(request, id):
         comment.delete()
         return Response({'message': 'Comment deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
-class UserViewSet(viewsets.ViewSet,
-                  generics.CreateAPIView,
-                  generics.ListAPIView):
-    queryset = User.objects.filter(is_active=True)
+class UserViewSet(viewsets.ViewSet, 
+                  generics.ListCreateAPIView):
+    queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [permissions.IsAuthenticated]
 
+    def get_permissions(self):
+        if self.action == 'create':
+            return [permissions.AllowAny()]
+        elif self.action == 'list':
+            return [permissions.IsAuthenticated(), permissions.IsAdminUser()]

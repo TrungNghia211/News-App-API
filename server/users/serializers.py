@@ -4,13 +4,14 @@ from .models import User, Category, SubCategory, Article, Comment
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['username', 'password']
+        fields = ['email', 'username', 'password']
+        write_only_fields = ['password']
 
     def create(self, validated_data):
         user = User(**validated_data)
         user.set_password(validated_data['password'])
         user.save()
-        return user 
+        return user
     
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,8 +23,6 @@ class SubCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = SubCategory
         fields = ['name', 'description', 'category']
-
-
 
 class ArticleSerializer(serializers.ModelSerializer):
     subcategory_id = serializers.PrimaryKeyRelatedField(
@@ -73,4 +72,3 @@ class CommentSerializer(serializers.ModelSerializer):
         if self.instance is None and not data.get('article'):
             raise serializers.ValidationError("Cần chọn một article hợp lệ cho comment.")
         return data
-

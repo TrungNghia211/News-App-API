@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 from decouple import config
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -44,6 +45,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'corsheaders',
     "rest_framework_simplejwt",
+    'rest_framework_simplejwt.token_blacklist',
 ]
 
 MIDDLEWARE = [
@@ -105,9 +107,6 @@ AUTH_USER_MODEL = 'users.User'
 
 SWAGGER_SETTINGS = {
    'SECURITY_DEFINITIONS': {
-    #   'Basic': {
-    #         'type': 'basic'
-    #   },
       'Bearer': {
             'type': 'apiKey',
             'name': 'Authorization',
@@ -115,6 +114,19 @@ SWAGGER_SETTINGS = {
       }
    },
    'DEFAULT_AUTO_SCHEMA_CLASS': 'drf_yasg.inspectors.SwaggerAutoSchema',
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=20),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256',
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'USER_ID_FIELD': 'id',
+    'USER_ID_CLAIM': 'user_id',
+    'AUTH_TOKEN_CLASSES': ['rest_framework_simplejwt.tokens.AccessToken'],
+    'TOKEN_TYPE_CLAIM': 'token_type',
 }
 
 
