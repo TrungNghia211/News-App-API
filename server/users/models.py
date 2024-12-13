@@ -48,10 +48,15 @@ class Article(models.Model):
             raise ValidationError("Cần phải chọn ít nhất một trong hai: image_url hoặc image_file.")
 
 class Comment(models.Model):
-    title = models.TextField(default="No title") 
-    author = models.CharField(max_length=255, null=True, blank=True)  
+    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False) 
+    title = models.CharField(max_length=255)
+    author = models.CharField(max_length=255, default='Anonymous') 
     created_date = models.DateTimeField(auto_now_add=True)  
-    article = models.ForeignKey(Article, related_name='comments', on_delete=models.CASCADE)  
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='comments') 
 
     def __str__(self):
-        return self.article[:50]  
+        return self.content[:50]  
+
+class SoftDeletedManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_deleted=False)
