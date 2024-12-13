@@ -18,28 +18,29 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class SubCategorySerializer(serializers.ModelSerializer):
+    sub = serializers.CharField(source='name')  
     category = serializers.PrimaryKeyRelatedField(queryset=Category.objects.all())
+
     class Meta:
         model = SubCategory
         fields = ['name', 'description', 'category']
 
-
-
 class ArticleSerializer(serializers.ModelSerializer):
     subcategory_id = serializers.PrimaryKeyRelatedField(
         queryset=SubCategory.objects.all(),
-        source='subcategory',
-        write_only=True
+        source='subcategory',  
+        write_only=False
     )
-    
     category_id = serializers.PrimaryKeyRelatedField(
         queryset=Category.objects.all(),
         source='category', 
-        write_only=True
+        write_only=False
     )
 
     image_url = serializers.URLField(required=False, allow_null=True)
     image_file = serializers.ImageField(required=False, allow_null=True)
+
+    author = serializers.PrimaryKeyRelatedField(read_only=True)
 
     class Meta:
         model = Article
@@ -52,8 +53,8 @@ class ArticleSerializer(serializers.ModelSerializer):
             'author',
             'created_date',
             'updated_date',
-            'subcategory_id',
-            'category_id',
+            'subcategory_id', 
+            'category_id', 
         ]
 
     def validate(self, data):
@@ -64,13 +65,14 @@ class ArticleSerializer(serializers.ModelSerializer):
         if not image_url and not image_file:
             raise serializers.ValidationError("Cần phải cung cấp ít nhất một trong hai: image_url hoặc image_file.")
         return data
-    
+   
+
 class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
-        fields = ['id', 'title', 'author', 'created_date']
+        fields = ['id', 'title', 'author', 'created_date', 'article']  # Include 'article'
+
     def validate(self, data):
         if self.instance is None and not data.get('article'):
             raise serializers.ValidationError("Cần chọn một article hợp lệ cho comment.")
         return data
-

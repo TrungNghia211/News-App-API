@@ -53,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
 ]
 MIDDLEWARE.insert(0, 'corsheaders.middleware.CorsMiddleware')
 ROOT_URLCONF = 'server.urls'
@@ -147,3 +148,5 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
 ]
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+CORS_ALLOW_ALL_ORIGINS = True 
+APPEND_SLASH = False
