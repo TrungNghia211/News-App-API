@@ -48,30 +48,48 @@ article_request_body = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
         'title': openapi.Schema(type=openapi.TYPE_STRING, description='Content title'),
-        'image': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_BINARY, description='Content image'),
+        'image_url': openapi.Schema(type=openapi.TYPE_STRING, description='Content image URL'),
         'content': openapi.Schema(type=openapi.TYPE_STRING, description='Content body'),
         'author': openapi.Schema(type=openapi.TYPE_STRING, description='Author name', nullable=True),
         'active': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='Is content active?'),
-        'subcategory_idid': openapi.Schema(type=openapi.TYPE_INTEGER, description='SubCategory ID'),
+        'subcategory_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='SubCategory ID'),
         'category_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='Category ID', nullable=True),
     },
-    required=['title', 'content', 'subcategory'],
+    required=['title', 'content', 'subcategory_id'],
 )
 
 article_update_body = openapi.Schema(
     type=openapi.TYPE_OBJECT,
     properties={
         'title': openapi.Schema(type=openapi.TYPE_STRING, description='Updated Content title'),
-        'image': openapi.Schema(type=openapi.TYPE_STRING, format=openapi.FORMAT_BINARY, description='Updated Content image'),
+        'image_url': openapi.Schema(type=openapi.TYPE_STRING, description='Updated Content image URL'),
         'content': openapi.Schema(type=openapi.TYPE_STRING, description='Updated Content body'),
         'author': openapi.Schema(type=openapi.TYPE_STRING, description='Updated Author name', nullable=True),
         'active': openapi.Schema(type=openapi.TYPE_BOOLEAN, description='Is content active?'),
         'subcategory_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='Updated SubCategory ID'),
         'category_id': openapi.Schema(type=openapi.TYPE_INTEGER, description='Updated Category ID', nullable=True),
     },
-    required=['title', 'content', 'subcategory'],
+    required=['title', 'content', 'subcategory_id'],
 )
 
+comment_request_body = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'title': openapi.Schema(type=openapi.TYPE_STRING, description='Title'),
+        'author': openapi.Schema(type=openapi.TYPE_STRING, description='Author'),
+        'article': openapi.Schema(type=openapi.TYPE_INTEGER, description='Article ID'),
+    },
+    required=['title','author', 'article'],  
+)
+comment_update_body = openapi.Schema(
+    type=openapi.TYPE_OBJECT,
+    properties={
+        'title': openapi.Schema(type=openapi.TYPE_STRING, description='Updated Title'),
+        'author': openapi.Schema(type=openapi.TYPE_STRING, description='Updated Author'),
+        'article': openapi.Schema(type=openapi.TYPE_INTEGER, description='Updated Article ID'),
+    },
+    required=['title','author', 'article'],  
+)
 @swagger_auto_schema(
     method='post',
     request_body=category_request_body,
@@ -232,16 +250,22 @@ def article_detail(request, pk):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == 'PUT':
+        print(f"Request Data: {request.data}") 
         serializer = ArticleSerializer(content, data=request.data)
         if serializer.is_valid():
+            print(f"Validated Data: {serializer.validated_data}") 
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
-        print(f"check request {serializer.validated_data}")
+        print(f"Check request errors: {serializer.errors}")  
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     elif request.method == 'DELETE':
-        content.delete()
-        return Response({'message': 'Content deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        content.active = 0  
+        content.save()  
+        return Response({'message': 'Article set to inactive (active = 0)'}, status=status.HTTP_204_NO_CONTENT)
+        
+        
+
 
 @swagger_auto_schema(
     method='post',
@@ -290,72 +314,78 @@ def article_get_all(request):
             {"errors": "Something went wrong.", "details": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-    
-@swagger_auto_schema(
-    method='get',
-    responses={200: CommentSerializer(many=True), 404: "Article not found"}
-)
+
+# views.py
 @swagger_auto_schema(
     method='post',
-    request_body=CommentSerializer,
+    request_body=comment_request_body,
     responses={201: CommentSerializer, 400: "Invalid input"}
 )
+@swagger_auto_schema(
+    method='get',
+    responses={200: CommentSerializer(many=True)}
+)
 @api_view(['GET', 'POST'])
-def add_comment(request, article_id):
-    try:
-        article = Article.objects.get(id=article_id)
-    except Article.DoesNotExist:
-        return Response({'detail': 'Article not found'}, status=status.HTTP_404_NOT_FOUND)
+def comment_view(request, articles_id):  
     if request.method == 'GET':
-        comments = article.comments.all()  
+        comments = Comment.objects.filter(article_id=articles_id)  
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
     elif request.method == 'POST':
-        data = request.data.copy()
-        data['article'] = article.id  
+        # request.data['article'] = articles_id
+        # serializer = CommentSerializer(data=request.data)
+        # if serializer.is_valid():
+        #     serializer.save()
+        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # else:
+        #     errors = serializer.errors
+        #     return Response({"message": "Invalid data", "details": errors}, status=status.HTTP_400_BAD_REQUEST)
+        data = request.data
+        # data['article'] = articles_id  
         serializer = CommentSerializer(data=data)
+
+        print(f"check params {request.query_params}")
         if serializer.is_valid():
-            serializer.save()
+            serializer.save()  
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 @swagger_auto_schema(
     method='get',
     responses={200: CommentSerializer, 404: "Comment not found"}
 )
 @swagger_auto_schema(
     method='put',
-    request_body=CommentSerializer,
+    request_body=comment_update_body,
     responses={200: CommentSerializer, 400: "Invalid input", 404: "Comment not found"}
 )
 @swagger_auto_schema(
     method='delete',
-    responses={204: "Comment deleted successfully", 404: "Comment not found"}
+    responses={204: "Deleted successfully", 404: "Comment not found"}
 )
 @api_view(['GET', 'PUT', 'DELETE'])
-def comment_detail(request, id):
+def comment_detail(request, pk):
     try:
-        comment = Comment.objects.get(id=id)
+        comment = Comment.objects.get(pk=pk)
     except Comment.DoesNotExist:
         return Response({'error': 'Comment not found'}, status=status.HTTP_404_NOT_FOUND)
+
     if request.method == 'GET':
         serializer = CommentSerializer(comment)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
     elif request.method == 'PUT':
-        article_id = request.data.get('article_id')  
-        if article_id:
-            try:
-                article = Article.objects.get(id=article_id)
-                comment.article = article  
-            except Article.DoesNotExist:
-                return Response({'error': 'Content not found'}, status=status.HTTP_400_BAD_REQUEST)
-        serializer = CommentSerializer(comment, data=request.data, partial=True)
+        serializer = CommentSerializer(comment, data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)  
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     elif request.method == 'DELETE':
         comment.delete()
         return Response({'message': 'Comment deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+
 
 class UserViewSet(viewsets.ViewSet,
                   generics.CreateAPIView,

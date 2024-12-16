@@ -27,7 +27,7 @@ class SubCategory(models.Model):
 
 
 class Article(models.Model):
-    title = models.CharField(max_length=255, null=False)
+    title = models.CharField(max_length=255)
     image_url = models.URLField(max_length=200, blank=True, null=True)  
     image_file = models.ImageField(upload_to='images/', blank=True, null=True)  
     content = models.TextField()
@@ -49,14 +49,16 @@ class Article(models.Model):
             raise ValidationError("Cần phải chọn ít nhất một trong hai: image_url hoặc image_file.")
 
 class Comment(models.Model):
-    # id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False) 
     title = models.CharField(max_length=255)
-    author = models.CharField(max_length=255, default='Anonymous') 
-    created_date = models.DateTimeField(auto_now_add=True)  
-    article = models.ForeignKey(Article, on_delete=models.CASCADE, related_name='comments') 
-
+    author = models.CharField(max_length=255)
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
+    active = models.BooleanField(default=True)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE, null=True, blank=True)
     def __str__(self):
-        return self.content[:50]  
+        return f"{self.title} ({self.article.title if self.article else 'No Article'})"
+    
+
 
 class SoftDeletedManager(models.Manager):
     def get_queryset(self):
