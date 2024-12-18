@@ -8,6 +8,8 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 
 category_request_body = openapi.Schema(
     type=openapi.TYPE_OBJECT,
@@ -310,7 +312,22 @@ def article_get_all(request):
             {"errors": "Something went wrong.", "details": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-
+@swagger_auto_schema(
+    method='post',
+    responses={
+        200: openapi.Response("View count increased successfully"),
+        404: openapi.Response("Article not found"),
+    }
+)
+@api_view(['POST'])
+def increase_view(request, id):
+    try:
+        article = get_object_or_404(Article, id=id)
+        article.views += 1
+        article.save()
+        return JsonResponse({"message": "View count increased successfully", "views": article.views}, status=200)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
 # views.py
 @swagger_auto_schema(
     method='post',
