@@ -24,7 +24,7 @@ class SubCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubCategory
-        fields = ['name', 'description', 'category']
+        fields = ['id','sub', 'description', 'category']
 
 class ArticleSerializer(serializers.ModelSerializer):
     subcategory_id = serializers.PrimaryKeyRelatedField(
@@ -42,7 +42,7 @@ class ArticleSerializer(serializers.ModelSerializer):
     image_file = serializers.ImageField(required=False, allow_null=True)
 
     author = serializers.PrimaryKeyRelatedField(read_only=True)
-
+    pass
     class Meta:
         model = Article
         fields = [
@@ -56,6 +56,7 @@ class ArticleSerializer(serializers.ModelSerializer):
             'updated_date',
             'subcategory_id', 
             'category_id', 
+            'active', 
         ]
 
     def validate(self, data):
@@ -69,11 +70,8 @@ class ArticleSerializer(serializers.ModelSerializer):
    
 
 class CommentSerializer(serializers.ModelSerializer):
+    article = serializers.PrimaryKeyRelatedField(queryset=Article.objects.all())
+
     class Meta:
         model = Comment
-        fields = ['id', 'title', 'author', 'created_date', 'article']  # Include 'article'
-
-    def validate(self, data):
-        if self.instance is None and not data.get('article'):
-            raise serializers.ValidationError("Cần chọn một article hợp lệ cho comment.")
-        return data
+        fields = ['id', 'title', 'author', 'created_date', 'updated_date', 'active', 'article']
