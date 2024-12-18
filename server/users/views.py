@@ -264,9 +264,6 @@ def article_detail(request, pk):
         content.save()  
         return Response({'message': 'Article set to inactive (active = 0)'}, status=status.HTTP_204_NO_CONTENT)
         
-        
-
-
 @swagger_auto_schema(
     method='post',
     request_body=ArticleSerializer,
@@ -332,19 +329,9 @@ def comment_view(request, articles_id):
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    elif request.method == 'POST':
-        # request.data['article'] = articles_id
-        # serializer = CommentSerializer(data=request.data)
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # else:
-        #     errors = serializer.errors
-        #     return Response({"message": "Invalid data", "details": errors}, status=status.HTTP_400_BAD_REQUEST)
+    if request.method == 'POST':
         data = request.data
-        # data['article'] = articles_id  
         serializer = CommentSerializer(data=data)
-
         print(f"check params {request.query_params}")
         if serializer.is_valid():
             serializer.save()  
@@ -386,10 +373,8 @@ def comment_detail(request, pk):
         comment.delete()
         return Response({'message': 'Comment deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
-
-class UserViewSet(viewsets.ViewSet,
-                  generics.CreateAPIView,
-                  generics.ListAPIView):
-    queryset = User.objects.filter(is_active=True)
+class UserViewSet(viewsets.ViewSet, 
+                  generics.ListCreateAPIView):
+    queryset = User.objects.all()
     serializer_class = UserSerializer
 
