@@ -276,13 +276,9 @@ def article_detail(request, pk):
 )
 @api_view(['POST'])
 def article_create_by_subcategory(request):
-    """
-    API để tạo Article mới dựa trên SubCategory.
-    """
     serializer = ArticleSerializer(data=request.data)
-
     try:
-        if serializer.is_valid(raise_exception=True):  
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
     except serializers.ValidationError as e:
@@ -292,6 +288,7 @@ def article_create_by_subcategory(request):
             {"errors": "Something went wrong.", "details": str(e)},
             status=status.HTTP_400_BAD_REQUEST
         )
+
 @swagger_auto_schema(
     method='get',
     responses={
