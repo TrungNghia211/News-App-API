@@ -29,12 +29,13 @@ class Article(models.Model):
     image_url = models.URLField(max_length=200, blank=True, null=True)  
     image_file = models.ImageField(upload_to='images/', blank=True, null=True)  
     content = models.TextField()
-    author = models.CharField(max_length=255)  # Chỉ lưu tên tác giả dưới dạng chuỗi
+    author = models.CharField(max_length=255, default="Unknown Author") 
     created_date = models.DateTimeField(auto_now_add=True)  
     updated_date = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
     subcategory = models.ForeignKey('SubCategory', on_delete=models.CASCADE)
     category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True)
+    views = models.PositiveIntegerField(default=0)
 
     def __str__(self):
         return self.title

@@ -40,7 +40,7 @@ class ArticleSerializer(serializers.ModelSerializer):
 
     image_url = serializers.URLField(required=False, allow_null=True)
     image_file = serializers.ImageField(required=False, allow_null=True)
-    author = serializers.CharField(write_only=False)  # Cho phép hiển thị tác giả trong response
+    author = serializers.CharField(write_only=False)  
 
     class Meta:
         model = Article
@@ -50,12 +50,13 @@ class ArticleSerializer(serializers.ModelSerializer):
             'image_url',
             'image_file',
             'content',
-            'author',  # Đảm bảo trường author được trả về
+            'author',  
             'created_date',
             'updated_date',
             'subcategory_id',
             'category_id',
             'active',
+            'views',
         ]
 
     def validate(self, data):
