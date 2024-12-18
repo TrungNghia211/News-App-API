@@ -41,7 +41,7 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path("", include("users.urls")),
+    path("api/", include("users.urls")),
 
     path('api/token/', TokenObtainPairView.as_view(), name='login'), # Login
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), # Get refresh token

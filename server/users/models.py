@@ -24,13 +24,12 @@ class SubCategory(models.Model):
     category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.CASCADE)
     def __str__(self):
         return f"{self.name} ({self.category.name if self.category else 'No Category'})"
-
 class Article(models.Model):
     title = models.CharField(max_length=255)
     image_url = models.URLField(max_length=200, blank=True, null=True)  
     image_file = models.ImageField(upload_to='images/', blank=True, null=True)  
     content = models.TextField()
-    author = models.TextField(null=True, blank=True)
+    author = models.CharField(max_length=255)  # Chỉ lưu tên tác giả dưới dạng chuỗi
     created_date = models.DateTimeField(auto_now_add=True)  
     updated_date = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
@@ -41,11 +40,11 @@ class Article(models.Model):
         return self.title
 
     def clean(self):
-      
         if self.image_url and self.image_file:
             raise ValidationError("Chỉ được chọn một trong hai: image_url hoặc image_file.")
         if not self.image_url and not self.image_file:
             raise ValidationError("Cần phải chọn ít nhất một trong hai: image_url hoặc image_file.")
+
 
 class Comment(models.Model):
     title = models.CharField(max_length=255)
