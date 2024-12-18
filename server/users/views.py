@@ -375,9 +375,10 @@ def comment_detail(request, pk):
         comment.delete()
         return Response({'message': 'Comment deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
 
-class UserViewSet(viewsets.ViewSet, 
-                  generics.ListCreateAPIView):
-    queryset = User.objects.all()
+class UserViewSet(viewsets.ViewSet,
+                  generics.CreateAPIView,
+                  generics.ListAPIView):
+    queryset = User.objects.filter(is_active=True)
     serializer_class = UserSerializer
 
     def get_permissions(self):
