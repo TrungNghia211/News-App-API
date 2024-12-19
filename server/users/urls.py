@@ -20,6 +20,8 @@ urlpatterns = [
     path('articles/', views.article_create_by_subcategory, name='articles-create-by-subcategory'),  
     path('articles/all/', views.article_get_all, name='articles_get_all'),
     path('articles/<int:id>/increase-view/', views.increase_view, name='increase_view'),
+    path('articles/category/<int:category_id>/', views.articles_by_category, name='articles-by-category'),
+    path('articles/subcategory/<int:subcategory_id>/', views.articles_by_subcategory, name='articles-by-subcategory'),
     
     path('comments/articles/<int:articles_id>/', views.comment_view, name='add_comment'),
     path('comments/<int:pk>/', views.comment_detail, name='comment_detail'),
