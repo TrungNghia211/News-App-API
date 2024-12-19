@@ -328,6 +328,56 @@ def increase_view(request, id):
         return JsonResponse({"message": "View count increased successfully", "views": article.views}, status=200)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+@swagger_auto_schema(
+    method='get',
+    responses={
+        200: openapi.Response("List of articles by category", ArticleSerializer(many=True)),
+        404: openapi.Response("Category not found"),
+        500: openapi.Response("Internal Server Error"),
+    }
+)
+@api_view(['GET'])
+def articles_by_category(request, category_id):
+    """
+    API để lấy các bài viết theo category_id.
+    """
+    try:
+        articles = Article.objects.filter(category_id=category_id)
+        if not articles.exists():
+            return Response({'error': 'No articles found for this category'}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = ArticleSerializer(articles, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {"errors": "Something went wrong.", "details": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+@swagger_auto_schema(
+    method='get',
+    responses={
+        200: openapi.Response("List of articles by subcategory", ArticleSerializer(many=True)),
+        404: openapi.Response("Subcategory not found"),
+        500: openapi.Response("Internal Server Error"),
+    }
+)
+@api_view(['GET'])
+def articles_by_subcategory(request, subcategory_id):
+    """
+    API để lấy các bài viết theo subcategory_id.
+    """
+    try:
+        articles = Article.objects.filter(subcategory_id=subcategory_id)
+        if not articles.exists():
+            return Response({'error': 'No articles found for this subcategory'}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = ArticleSerializer(articles, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response(
+            {"errors": "Something went wrong.", "details": str(e)},
+            status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 # views.py
 @swagger_auto_schema(
     method='post',
@@ -398,5 +448,20 @@ class UserViewSet(viewsets.ViewSet,
     def get_permissions(self):
         if self.action == 'create':
             return [permissions.AllowAny()]
-        elif self.action == 'list':
-            return [permissions.IsAuthenticated(), permissions.IsAdminUser()]
+        elif self.action in ['list', 'retrieve']:
+            # return [permissions.IsAuthenticated()]
+            return [permissions.AllowAny()]
+
+    def retrieve(self, request, pk=None):
+        """
+        API để lấy thông tin người dùng theo ID.
+        """
+        try:
+            user = User.objects.get(pk=pk, is_active=True)
+            serializer = self.serializer_class(user)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "User not found or inactive."},
+                status=status.HTTP_404_NOT_FOUND
+            )
