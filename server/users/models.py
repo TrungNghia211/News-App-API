@@ -5,7 +5,14 @@ from django.core.exceptions import ValidationError
 
 class User(AbstractUser):
     avatar = models.ImageField(upload_to='user_avatar/%Y/%m', default=None)
+    phone = models.CharField(max_length=15, blank=True, null=True)  
+    birthday = models.DateField(null=True, blank=True)  
+    address = models.CharField(max_length=255, blank=True, null=True)  
+    description = models.TextField(blank=True, null=True)  
 
+    def __str__(self):
+        return self.username
+    
 class Category(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(default="No description provided")
@@ -49,15 +56,14 @@ class Article(models.Model):
 
 class Comment(models.Model):
     title = models.CharField(max_length=255)
-    author = models.CharField(max_length=255)
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='comments')
     created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
     article = models.ForeignKey(Article, on_delete=models.CASCADE, null=True, blank=True)
+
     def __str__(self):
         return f"{self.title} ({self.article.title if self.article else 'No Article'})"
-    
-
 
 class SoftDeletedManager(models.Manager):
     def get_queryset(self):

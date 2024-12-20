@@ -24,5 +24,6 @@ urlpatterns = [
     path('articles/subcategory/<int:subcategory_id>/', views.articles_by_subcategory, name='articles-by-subcategory'),
     
     path('comments/articles/<int:articles_id>/', views.comment_view, name='add_comment'),
+    path('comments/user/<int:user_id>/', views.comment_view_userID, name='comments_by_user'),
     path('comments/<int:pk>/', views.comment_detail, name='comment_detail'),
 ]
