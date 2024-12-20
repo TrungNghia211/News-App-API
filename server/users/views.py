@@ -381,7 +381,7 @@ def articles_by_subcategory(request, subcategory_id):
 # views.py
 @swagger_auto_schema(
     method='post',
-    request_body=comment_request_body,
+    request_body=CommentSerializer,
     responses={201: CommentSerializer, 400: "Invalid input"}
 )
 @swagger_auto_schema(
@@ -389,21 +389,30 @@ def articles_by_subcategory(request, subcategory_id):
     responses={200: CommentSerializer(many=True)}
 )
 @api_view(['GET', 'POST'])
-def comment_view(request, articles_id):  
+def comment_view(request, articles_id):
     if request.method == 'GET':
-        comments = Comment.objects.filter(article_id=articles_id)  
+        comments = Comment.objects.filter(article_id=articles_id)
         serializer = CommentSerializer(comments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     if request.method == 'POST':
-        data = request.data
-        serializer = CommentSerializer(data=data)
-        print(f"check params {request.query_params}")
+        serializer = CommentSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save()  
+            serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+@swagger_auto_schema(
+    method='get',
+    responses={200: CommentSerializer(many=True)}
+)
+@api_view(['GET'])
+def comment_view_userID(request, user_id):
+    comments = Comment.objects.filter(author=user_id)
+    if not comments:
+        return JsonResponse({"message": "No comments found for this user."}, status=404)
+    serialized_comments = CommentSerializer(comments, many=True).data
+    return JsonResponse({"comments": serialized_comments}, status=200)
 @swagger_auto_schema(
     method='get',
     responses={200: CommentSerializer, 404: "Comment not found"}
@@ -448,7 +457,7 @@ class UserViewSet(viewsets.ViewSet,
     def get_permissions(self):
         if self.action == 'create':
             return [permissions.AllowAny()]
-        elif self.action in ['list', 'retrieve']:
+        elif self.action in ['list', 'retrieve', 'update']:
             # return [permissions.IsAuthenticated()]
             return [permissions.AllowAny()]
 
@@ -460,6 +469,22 @@ class UserViewSet(viewsets.ViewSet,
             user = User.objects.get(pk=pk, is_active=True)
             serializer = self.serializer_class(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "User not found or inactive."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    def update(self, request, pk=None):
+        """
+        API để cập nhật thông tin người dùng theo ID.
+        """
+        try:
+            user = User.objects.get(pk=pk, is_active=True)
+            serializer = self.serializer_class(user, data=request.data, partial=True)  
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except User.DoesNotExist:
             return Response(
                 {"detail": "User not found or inactive."},
