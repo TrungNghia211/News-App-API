@@ -12,11 +12,6 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(validated_data['password'])
         user.save()
         return user
-    
-class CategorySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Category
-        fields = '__all__'
 
 class SubCategorySerializer(serializers.ModelSerializer):
     sub = serializers.CharField(source='name')  
@@ -24,7 +19,13 @@ class SubCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SubCategory
-        fields = ['id','sub', 'description', 'category']
+        fields = ['id', 'sub', 'description', 'category']
+
+class CategorySerializer(serializers.ModelSerializer):
+    subcategories = SubCategorySerializer(many=True, read_only=True)
+    class Meta:
+        model = Category
+        fields = ['id', 'name', 'description', 'created_date', 'updated_date', 'subcategories']
 
 class ArticleSerializer(serializers.ModelSerializer):
     subcategory_id = serializers.PrimaryKeyRelatedField(

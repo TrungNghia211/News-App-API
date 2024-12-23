@@ -21,7 +21,7 @@ class Category(models.Model):
 
     def __str__(self):
         return self.name
-
+        
 class SubCategory(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(default="No description provided")
@@ -29,15 +29,17 @@ class SubCategory(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
     category = models.ForeignKey(Category, related_name='subcategories', on_delete=models.CASCADE)
+    
     def __str__(self):
         return f"{self.name} ({self.category.name if self.category else 'No Category'})"
+    
 class Article(models.Model):
     title = models.CharField(max_length=255)
-    image_url = models.URLField(max_length=200, blank=True, null=True)  
-    image_file = models.ImageField(upload_to='images/', blank=True, null=True)  
+    image_url = models.URLField(max_length=200, blank=True, null=True)
+    image_file = models.ImageField(upload_to='images/', blank=True, null=True)
     content = models.TextField()
-    author = models.CharField(max_length=255, default="Unknown Author") 
-    created_date = models.DateTimeField(auto_now_add=True)  
+    author = models.CharField(max_length=255, default="Unknown Author")
+    created_date = models.DateTimeField(auto_now_add=True)
     updated_date = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
     subcategory = models.ForeignKey('SubCategory', on_delete=models.CASCADE)

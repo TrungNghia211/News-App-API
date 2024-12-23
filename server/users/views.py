@@ -112,11 +112,25 @@ def category_view(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == 'POST':
+        # serializer = CategorySerializer(data=request.data)
+        # if serializer.is_valid():
+        #     serializer.save()
+        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+        name = request.data.get('name', None)
+        if Category.objects.filter(name=name).exists(): 
+            return Response({
+                "message": "Category with name " + name + " already exists."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         serializer = CategorySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            errors = serializer.errors
+            return Response({"message": "Invalid data", "details": errors}, status=status.HTTP_400_BAD_REQUEST)
 
 
 @swagger_auto_schema(
@@ -153,7 +167,7 @@ def category_detail(request, pk):
 
     elif request.method == 'DELETE':
         category.delete()
-        return Response({'message': 'Category deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'Category deleted successfully'}, status=status.HTTP_200_OK)
    
 @swagger_auto_schema(
     method='post',
@@ -172,6 +186,12 @@ def subcategory_view(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == 'POST':
+        name = request.data.get('sub', None)
+        if SubCategory.objects.filter(name=name).exists(): 
+            return Response({
+                "message": "Subcategory with name " + name + " already exists."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         serializer = SubCategorySerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -179,6 +199,7 @@ def subcategory_view(request):
         else:
             errors = serializer.errors
             return Response({"message": "Invalid data", "details": errors}, status=status.HTTP_400_BAD_REQUEST)
+        
 @swagger_auto_schema(
     method='get',
     responses={200: SubCategorySerializer(many=True), 404: "Category not found"}
@@ -227,7 +248,7 @@ def subcategory_detail(request, pk):
 
     elif request.method == 'DELETE':
         subcategory.delete()
-        return Response({'message': 'SubCategory deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        return Response({'message': 'SubCategory deleted successfully'}, status=status.HTTP_200_OK)
 
 @swagger_auto_schema(
     method='get',
@@ -457,14 +478,11 @@ class UserViewSet(viewsets.ViewSet,
     def get_permissions(self):
         if self.action == 'create':
             return [permissions.AllowAny()]
-        elif self.action in ['list', 'retrieve', 'update']:
-            # return [permissions.IsAuthenticated()]
-            return [permissions.AllowAny()]
+        elif self.action in ['list', 'retrieve']:
+            return [permissions.IsAuthenticated()]
+            # return [permissions.AllowAny()]
 
     def retrieve(self, request, pk=None):
-        """
-        API để lấy thông tin người dùng theo ID.
-        """
         try:
             user = User.objects.get(pk=pk, is_active=True)
             serializer = self.serializer_class(user)
