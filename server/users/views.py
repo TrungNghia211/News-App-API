@@ -112,12 +112,6 @@ def category_view(request):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == 'POST':
-        # serializer = CategorySerializer(data=request.data)
-        # if serializer.is_valid():
-        #     serializer.save()
-        #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-        # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
         name = request.data.get('name', None)
         if Category.objects.filter(name=name).exists(): 
             return Response({
@@ -148,7 +142,6 @@ def category_view(request):
 )
 @api_view(['GET', 'PUT', 'DELETE'])
 def category_detail(request, pk):
-    
     try:
         category = Category.objects.get(pk=pk)
     except Category.DoesNotExist:
@@ -159,6 +152,12 @@ def category_detail(request, pk):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == 'PUT':
+        name = request.data.get('name', None)
+        if Category.objects.filter(name=name).exists(): 
+            return Response({
+                "message": "Category with name " + name + " already exists."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         serializer = CategorySerializer(category, data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -184,12 +183,13 @@ def subcategory_view(request):
         subcategories = SubCategory.objects.all()
         serializer = SubCategorySerializer(subcategories, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
+    
     elif request.method == 'POST':
-        name = request.data.get('sub', None)
-        if SubCategory.objects.filter(name=name).exists(): 
+        category_id = request.data.get('category', None)
+        subcategory_name = request.data.get('sub', None)
+        if SubCategory.objects.filter(name=subcategory_name, category_id=category_id).exists(): 
             return Response({
-                "message": "Subcategory with name " + name + " already exists."},
+                "message": "Subcategory with name " + subcategory_name + " already exists."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         serializer = SubCategorySerializer(data=request.data)
