@@ -105,7 +105,6 @@ comment_update_body = openapi.Schema(
 )
 @api_view(['GET', 'POST'])
 def category_view(request):
-    
     if request.method == 'GET':
         categories = Category.objects.all()
         serializer = CategorySerializer(categories, many=True)
@@ -125,7 +124,6 @@ def category_view(request):
         else:
             errors = serializer.errors
             return Response({"message": "Invalid data", "details": errors}, status=status.HTTP_400_BAD_REQUEST)
-
 
 @swagger_auto_schema(
     method='get',
@@ -215,6 +213,7 @@ def subcategories_by_category(request, category_id):
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
 @swagger_auto_schema(
     method='get',
     responses={200: SubCategorySerializer, 404: "SubCategory not found"}
@@ -333,6 +332,7 @@ def article_get_all(request):
             {"errors": "Something went wrong.", "details": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
 @swagger_auto_schema(
     method='post',
     responses={
@@ -349,6 +349,7 @@ def increase_view(request, id):
         return JsonResponse({"message": "View count increased successfully", "views": article.views}, status=200)
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
+    
 @swagger_auto_schema(
     method='get',
     responses={
@@ -374,6 +375,7 @@ def articles_by_category(request, category_id):
             {"errors": "Something went wrong.", "details": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
 @swagger_auto_schema(
     method='get',
     responses={
@@ -399,7 +401,7 @@ def articles_by_subcategory(request, subcategory_id):
             {"errors": "Something went wrong.", "details": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-# views.py
+
 @swagger_auto_schema(
     method='post',
     request_body=CommentSerializer,
@@ -479,8 +481,8 @@ class UserViewSet(viewsets.ViewSet,
         if self.action == 'create':
             return [permissions.AllowAny()]
         elif self.action in ['list', 'retrieve']:
-            return [permissions.IsAuthenticated()]
-            # return [permissions.AllowAny()]
+            # return [permissions.IsAuthenticated()]
+            return [permissions.AllowAny()]
 
     def retrieve(self, request, pk=None):
         try:

@@ -43,7 +43,7 @@ class Article(models.Model):
     updated_date = models.DateTimeField(auto_now=True)
     active = models.BooleanField(default=True)
     subcategory = models.ForeignKey('SubCategory', on_delete=models.CASCADE)
-    category = models.ForeignKey('Category', on_delete=models.SET_NULL, null=True)
+    category = models.ForeignKey('Category', on_delete=models.CASCADE, null=True)
     views = models.PositiveIntegerField(default=0)
 
     def __str__(self):
@@ -54,7 +54,6 @@ class Article(models.Model):
             raise ValidationError("Chỉ được chọn một trong hai: image_url hoặc image_file.")
         if not self.image_url and not self.image_file:
             raise ValidationError("Cần phải chọn ít nhất một trong hai: image_url hoặc image_file.")
-
 
 class Comment(models.Model):
     title = models.CharField(max_length=255)
