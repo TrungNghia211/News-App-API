@@ -41,11 +41,15 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-    path("api/", include("users.urls")),
+    path("", include("users.urls")),
+    # path("api/", include("categories.urls")),
+    # path("api/", include("users.urls")),
+    # path("api/", include("users.urls")),
+    # path("api/", include("users.urls")),
 
-    path('api/token/', TokenObtainPairView.as_view(), name='login'), # Login
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), # Get refresh token
-    path('api/token/blacklist/', TokenBlacklistView.as_view(), name='logout'), # Logout
+    path('api/token/', TokenObtainPairView.as_view(), name='login'), 
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'), 
+    path('api/token/blacklist/', TokenBlacklistView.as_view(), name='logout'),
 
     path('swagger<format>/', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),

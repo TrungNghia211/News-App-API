@@ -10,6 +10,9 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+import cloudinary
+import cloudinary.uploader
+from cloudinary.utils import cloudinary_url
 
 category_request_body = openapi.Schema(
     type=openapi.TYPE_OBJECT,
@@ -479,8 +482,8 @@ class UserViewSet(viewsets.ViewSet,
         if self.action == 'create':
             return [permissions.AllowAny()]
         elif self.action in ['list', 'retrieve']:
-            return [permissions.IsAuthenticated()]
-            # return [permissions.AllowAny()]
+            # return [permissions.IsAuthenticated()]
+            return [permissions.AllowAny()]
 
     def retrieve(self, request, pk=None):
         try:
@@ -508,3 +511,19 @@ class UserViewSet(viewsets.ViewSet,
                 {"detail": "User not found or inactive."},
                 status=status.HTTP_404_NOT_FOUND
             )
+@api_view(['POST'])
+def upload_image(request):
+    file = request.FILES.get('file') 
+
+    if not file:
+        return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        
+        upload_result = cloudinary.uploader.upload(file)
+        image_url = upload_result['secure_url']  
+
+        return Response({"url": image_url}, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
