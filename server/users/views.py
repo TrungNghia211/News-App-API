@@ -481,7 +481,7 @@ class UserViewSet(viewsets.ViewSet,
     def get_permissions(self):
         if self.action == 'create':
             return [permissions.AllowAny()]
-        elif self.action in ['list', 'retrieve']:
+        elif self.action in ['list', 'retrieve', 'update']:
             # return [permissions.IsAuthenticated()]
             return [permissions.AllowAny()]
 
