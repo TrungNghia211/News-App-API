@@ -4,7 +4,7 @@ from .models import User, Category, SubCategory, Article, Comment
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['email', 'username', 'password','phone', 'birthday', 'address', 'description']
+        fields = ['email', 'username', 'password','phone', 'birthday', 'address', 'description', 'is_staff']
         write_only_fields = ['password']
 
     def create(self, validated_data):
@@ -67,11 +67,13 @@ class ArticleSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Chỉ được cung cấp một trong hai: image_url hoặc image_file.")
         if not image_url and not image_file:
             raise serializers.ValidationError("Cần phải cung cấp ít nhất một trong hai: image_url hoặc image_file.")
+        
         return data
 
     def create(self, validated_data):
         author_name = validated_data.pop('author', None)
         article = Article.objects.create(author=author_name, **validated_data)
+        
         return article
 
 class CommentSerializer(serializers.ModelSerializer):
