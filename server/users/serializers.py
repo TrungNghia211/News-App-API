@@ -4,7 +4,7 @@ from .models import User, Category, SubCategory, Article, Comment
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id','email', 'username', 'password','phone', 'birthday', 'address', 'description', 'is_staff']
+        fields = ['id','email', 'username', 'password','phone', 'birthday', 'address', 'description', 'is_staff', 'is_active']
         write_only_fields = ['password']
 
     def create(self, validated_data):
