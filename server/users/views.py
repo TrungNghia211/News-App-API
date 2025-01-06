@@ -13,6 +13,7 @@ from django.shortcuts import get_object_or_404
 import cloudinary
 import cloudinary.uploader
 from cloudinary.utils import cloudinary_url
+from rest_framework.decorators import action
 
 category_request_body = openapi.Schema(
     type=openapi.TYPE_OBJECT,
@@ -402,7 +403,6 @@ def articles_by_subcategory(request, subcategory_id):
             {"errors": "Something went wrong.", "details": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
-# views.py
 @swagger_auto_schema(
     method='post',
     request_body=CommentSerializer,
@@ -481,7 +481,7 @@ class UserViewSet(viewsets.ViewSet,
     def get_permissions(self):
         if self.action == 'create':
             return [permissions.AllowAny()]
-        elif self.action in ['list', 'retrieve', 'update']:
+        elif self.action in ['list', 'retrieve', 'update','update_status']:
             # return [permissions.IsAuthenticated()]
             return [permissions.AllowAny()]
 
@@ -511,19 +511,36 @@ class UserViewSet(viewsets.ViewSet,
                 {"detail": "User not found or inactive."},
                 status=status.HTTP_404_NOT_FOUND
             )
+        
+    @action(detail=True, methods=['patch'])
+    def update_status(self, request, pk=None):
+        """
+        API để thay đổi trạng thái is_active của người dùng theo ID.
+        """
+        try:
+            user = User.objects.get(pk=pk)
+            is_active = request.data.get('is_active')
+            if is_active is None:
+                return Response(
+                    {"detail": "'is_active' field is required."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            user.is_active = is_active
+            user.save()
+            return Response({"detail": "User status updated successfully."}, status=status.HTTP_200_OK)
+        except User.DoesNotExist:
+            return Response(
+                {"detail": "User not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
 @api_view(['POST'])
 def upload_image(request):
     file = request.FILES.get('file') 
-
     if not file:
         return Response({"error": "No file uploaded"}, status=status.HTTP_400_BAD_REQUEST)
-
     try:
-        
         upload_result = cloudinary.uploader.upload(file)
         image_url = upload_result['secure_url']  
-
         return Response({"url": image_url}, status=status.HTTP_200_OK)
-
     except Exception as e:
         return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
